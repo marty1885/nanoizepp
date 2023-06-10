@@ -103,6 +103,8 @@ std::string minimize_html_text(const std::string_view sv)
             break;
         minimized_text.replace(nul, 1, "\xEF\xBF\xBD");
     } while(true);
+    if(minimized_text == " ")
+        minimized_text = "";
     return minimized_text;
 }
 
@@ -180,12 +182,12 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
         if(whitespace == std::string_view::npos)
             break;
 
-        remaining_html = remaining_html.substr(whitespace);
         if(node_stack.empty())
             throw std::runtime_error("Nanoize++: Internal error: node_stack is empty");
         auto current_node = node_stack.back();
         // We found something, is it a start of a tag?
         if(remaining_html[0] == '<') {
+            remaining_html = remaining_html.substr(whitespace);
             remaining_html = remaining_html.substr(1);
             if(remaining_html.empty()) {
                 current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", "<"));
@@ -250,6 +252,22 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
                 if(current_node->tag != tag_name.substr(1)) {
                     // This is tricky. We are closing a tag that is not the current tag. First we try to find the tag in the stack
                     // and close all tags in between. If we can't find it, we just ignore it.
+
+                    // But special handling for <hX> tags. We can close them if the current tag is <hY> and abs(X-Y) <= 2
+                    if(tag_name.size() == 3 && tag_name[1] == 'h' && std::isdigit(tag_name[2])) {
+                        if(current_node->tag.size() == 3 && current_node->tag[1] == 'h' && std::isdigit(current_node->tag[2])) {
+                            try {
+                                auto x = std::stoi(tag_name.substr(2));
+                                auto y = std::stoi(current_node->tag.substr(2));
+                                if(std::abs(x-y) <= 2) {
+                                    node_stack.pop_back();
+                                    continue;
+                                }
+                            }
+                            catch(...) { }
+                        }
+                    }
+
                     auto it = std::find_if(node_stack.rbegin(), node_stack.rend(), [&](auto& node) {
                         return node->tag == tag_name.substr(1);
                     });
@@ -294,14 +312,19 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
             auto text_end = remaining_html.find('<');
             if(text_end == std::string_view::npos) {
                 // no more tags, just text
-                current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", minimize_html_text(remaining_html)));
+                std::string minimized_text = minimize_html_text(remaining_html);
+                if(minimized_text.empty())
+                    break;
+                current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", minimized_text));
                 break;
             }
             else {
                 std::string_view text = remaining_html.substr(0, text_end);
                 std::string minimized_text = minimize_html_text(text);
-                current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", minimized_text));
                 remaining_html = remaining_html.substr(text_end);
+                if(minimized_text.empty())
+                    continue;
+                current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", minimized_text));
             }
         }
         

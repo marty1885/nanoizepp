@@ -125,12 +125,12 @@ TEST_CASE("missing-end-tag-name")
     CHECK(miniaturized == "<p></p>");
 }
 
-// TEST_CASE("nested-comment")
-// {
-//     std::string html = "<p><!-- <!-- --> --></p>";
-//     std::string miniaturized = nanoizepp::nanoize(html);
-//     CHECK(miniaturized == "<p> --></p>");
-// }
+TEST_CASE("nested-comment")
+{
+    std::string html = "<p><!-- <!-- --> --></p>";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<p> --></p>");
+}
 
 TEST_CASE("null-character-reference")
 {
@@ -186,7 +186,7 @@ TEST_CASE("Tags in multiline paragraph", "[nanoizepp-test]")
     std::string html = R"(<p>Hello<div class="foo"     >
     Bar</div></p>)";
     std::string miniaturized = nanoizepp::nanoize(html);
-    CHECK(miniaturized == "<p>Hello<div class=\"foo\">Bar</div></p>");
+    CHECK(miniaturized == "<p>Hello<div class=\"foo\"> Bar</div></p>");
 }
 
 TEST_CASE("Lorem Ipsum")
