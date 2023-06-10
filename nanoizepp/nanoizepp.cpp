@@ -81,7 +81,7 @@ static std::string serialize_html_node(const HTMLNode& root, size_t indent, bool
     return current;
 }
 
-std::string minimize_html_text(const std::string_view sv)
+static std::string minimize_html_text(const std::string_view sv)
 {
     std::string_view text = sv;
     std::string minimized_text;
@@ -188,18 +188,18 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
     node_stack.push_back(&document_root);
     std::string_view remaining_html = html;
     while(remaining_html.empty() == false) {
-        // try to skip whitespace
-        auto whitespace = remaining_html.find_first_not_of(" \t\n\r");
-        if(whitespace == std::string_view::npos)
-            break;
-
         if(node_stack.empty())
             throw std::runtime_error("Nanoize++: Internal error: node_stack is empty");
         auto current_node = node_stack.back();
+
+        // skip whitespaces and see if we can find the start of a tag
+        auto whitespace = remaining_html.find_first_not_of(" \t\n\r");
+        // Only speces and newlines left, we are done
+        if(whitespace == std::string_view::npos)
+            break;
         // We found something, is it a start of a tag?
         if(remaining_html[0] == '<') {
-            remaining_html = remaining_html.substr(whitespace);
-            remaining_html = remaining_html.substr(1);
+            remaining_html = remaining_html.substr(whitespace).substr(1);
             if(remaining_html.empty()) {
                 current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", "<"));
                 break;
@@ -233,6 +233,23 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
                     remaining_html = remaining_html.substr(comment_end + end_size);
                     continue;
                 }
+            }
+            // Is possuble to be a incorrectly-opened-comment?
+            if(remaining_html.size() >= 1 && remaining_html.starts_with("!")) {
+                // Is it really a incorrectly-opened-comment? Try by checking if the following character is
+                // not a [ (CDATA) or is DOCTYPE
+                if(remaining_html.starts_with("![CDATA[") == false && remaining_html.starts_with("!DOCTYPE") == false) {
+                    // It is, let's try to find the end of the comment
+                    auto comment_end = remaining_html.find(">");
+                    if(comment_end == std::string_view::npos) {
+                        break;
+                    }
+                    else {
+                        remaining_html = remaining_html.substr(comment_end + 1);
+                        continue;
+                    }
+                }
+                // Else it's something else, let's just skip it
             }
            
             // find the actual tag name

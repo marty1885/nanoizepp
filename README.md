@@ -10,6 +10,7 @@ The author created this library to minimize the HTML transmitted from [his blog]
 - Written in safe C++
 - Remove comments
 - Remove unnecessary spaces and newlines
+- Unlike some minizeers, Nanoize++ conserves HTML tag sementics
 
 ### Limitations
 

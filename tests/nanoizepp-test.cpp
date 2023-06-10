@@ -183,7 +183,13 @@ TEST_CASE("cdata-in-sgv-math")
     html = R"(<svg><![CDATA[<]]></svg>)";
     miniaturized = nanoizepp::nanoize(html);
     CHECK(miniaturized == "<svg><![CDATA[<]]></svg>");
+}
 
+TEST_CASE("incorrectly-opened-comment")
+{
+    std::string html = "<! Hello World>";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "");
 }
 
 TEST_CASE("Attributes", "[nanoizepp-test]")
