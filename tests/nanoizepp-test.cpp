@@ -167,6 +167,25 @@ TEST_CASE("non-void-html-element-start-tag-with-trailing-solidus")
     CHECK(miniaturized == "<p>123</p>");
 }
 
+TEST_CASE("cdata-in-html-content")
+{
+    std::string html = R"(<p>123<![CDATA[456]]>789</p>)";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<p>123789</p>");
+}
+
+TEST_CASE("cdata-in-sgv-math")
+{
+    std::string html = R"(<math><![CDATA[<]]></math>)";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<math><![CDATA[<]]></math>");
+
+    html = R"(<svg><![CDATA[<]]></svg>)";
+    miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<svg><![CDATA[<]]></svg>");
+
+}
+
 TEST_CASE("Attributes", "[nanoizepp-test]")
 {
     std::string html = R"(<div class="main_disp"     ></div>)";

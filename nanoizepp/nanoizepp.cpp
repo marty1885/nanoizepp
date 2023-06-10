@@ -40,6 +40,10 @@ static const std::set<std::string> tags_never_minimize_content = {
     "script", "style", "pre", "code", "textarea", "plaintext"
 };
 
+static const std::set<std::string> tags_cdata_allowed = {
+    "svg", "math"
+};
+
 static std::string serialize_html_node(const HTMLNode& root, size_t indent, bool newline, std::string current = "", int depth = 0)
 {
     bool is_text = root.tag == "NANOIZEPP-PLAINTEXT";
@@ -225,7 +229,7 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
             }
            
             // find the actual tag name
-            auto tag_end = remaining_html.find_first_of(" \t\n\r>");
+            auto tag_end = remaining_html.find_first_of(" \t\n\r>[");
             if(tag_end == std::string_view::npos) {
                 current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", "<"+std::string(remaining_html)));
                 break;
@@ -233,6 +237,28 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
             std::string tag_name = std::string(remaining_html.substr(0, tag_end));
             remaining_html = remaining_html.substr(tag_end);
             bool is_self_closed = self_closed_tags.contains(tag_name);
+
+            if(tag_name == "!" && remaining_html.starts_with("[CDATA")) {
+                // CDATA
+                auto cdata_end = remaining_html.find("]]>");
+                std::string_view cdata = remaining_html.substr(7, cdata_end - 7);
+
+                // are we in a tag allowed to have CDATA?
+                bool allowed = false;
+                for(auto it = node_stack.rbegin(); it != node_stack.rend(); ++it) {
+                    if(tags_cdata_allowed.contains((*it)->tag)) {
+                        allowed = true;
+                        break;
+                    }
+                }
+
+                remaining_html = remaining_html.substr(cdata_end + 3);
+                if(!allowed)
+                    continue;
+                // Parsing CDATA is hard. Give up and just add it as a text node
+                current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", "<![CDATA["+std::string(cdata)+"]]>"));
+                continue;
+            }
             
             // parse attributes
             auto [remaining, attributes] = parse_attributes(remaining_html);
