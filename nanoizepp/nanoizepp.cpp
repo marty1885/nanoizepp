@@ -92,13 +92,14 @@ std::string minimize_html_text(const std::string_view sv)
             minimized_text += text;
             break;
         }
-        auto end_space = text.substr(space).find_first_not_of(" \t\n\r");
-        if(end_space == std::string_view::npos) {
-            minimized_text += " ";
+        minimized_text += std::string(text.substr(0, space));
+        minimized_text += " ";
+
+        text = text.substr(space);
+        auto non_space = text.find_first_not_of(" \t\n\r");
+        if(non_space == std::string_view::npos)
             break;
-        }
-        minimized_text += std::string(text.substr(0, space)) + " ";
-        text = text.substr(space + end_space);
+        text = text.substr(non_space);
     }
     // replace NUL characters with U+FFFD
     do {

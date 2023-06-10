@@ -215,6 +215,13 @@ TEST_CASE("Lorem Ipsum")
     CHECK(miniaturized == "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.</p>");
 }
 
+TEST_CASE("Complex nesting or tags and text")
+{
+    std::string html = R"(<a href="https://github.com/marty1885" target="_blank">Github <i class="fa-solid fa-arrow-up-right-from-square fa-xs"></i><div></div></a>)";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == html);
+}
+
 TEST_CASE("avoid special tags", "[nanoizepp-test]")
 {
     // <pre>, <code>, <textarea>, <plaintext>, <script>, <style>

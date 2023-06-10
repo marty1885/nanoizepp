@@ -17,5 +17,6 @@ R"(
 </html>
 )";
     std::string miniaturized = nanoizepp::nanoize(html);
+    std::cout << miniaturized << std::endl;
     return 0;
 }
