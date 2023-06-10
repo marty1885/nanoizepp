@@ -125,7 +125,7 @@ static std::pair<std::string_view, std::map<std::string, std::string>> parse_att
         // skip whitespaces and / (because HTML5 standard)
         auto whitespace = remaining.find_first_not_of(" \t\n\r/");
         if(whitespace == std::string_view::npos)
-            throw std::runtime_error("Unexpected end of tag");
+            break;
         remaining = remaining.substr(whitespace);
         // check if we are at the end of the tag
         if(remaining[0] == '>')
@@ -134,13 +134,13 @@ static std::pair<std::string_view, std::map<std::string, std::string>> parse_att
         // find the attribute name
         auto attribute_name_end = remaining.find_first_of(" \t\n\r=>");
         if(attribute_name_end == std::string_view::npos)
-            throw std::runtime_error("Unexpected end of tag");
+            break;
         auto attribute_name = remaining.substr(0, attribute_name_end);
         remaining = remaining.substr(attribute_name_end);
         // skip whitespaces and =
         whitespace = remaining.find_first_not_of(" \t\n\r=");
         if(whitespace == std::string_view::npos)
-            throw std::runtime_error("Unexpected end of tag");
+            break;
         remaining = remaining.substr(whitespace);
         // check if we are at the end of the tag
         if(remaining[0] == '>') {
@@ -159,10 +159,15 @@ static std::pair<std::string_view, std::map<std::string, std::string>> parse_att
             // attribute value is quoted, find the next quote
             remaining = remaining.substr(1);
             auto attribute_value_end = remaining.find_first_of("\"");
-            if(attribute_value_end == std::string_view::npos)
-                throw std::runtime_error("Unexpected end of tag");
-            attribute_value = remaining.substr(0, attribute_value_end);
-            remaining = remaining.substr(attribute_value_end + 1);
+            // pretend to have the quote at the end of the string
+            if(attribute_value_end == std::string_view::npos) {
+                attribute_value = remaining;
+                remaining = std::string_view();
+            }
+            else {
+                attribute_value = remaining.substr(0, attribute_value_end);
+                remaining = remaining.substr(attribute_value_end + 1);
+            }
         }
 
         if(attributes.contains(std::string(attribute_name)))
@@ -179,6 +184,7 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
 {
     HTMLNode document_root("NANOIZEPP-ROOT");
     std::vector<HTMLNode*> node_stack;
+    node_stack.reserve(32);
     node_stack.push_back(&document_root);
     std::string_view remaining_html = html;
     while(remaining_html.empty() == false) {
