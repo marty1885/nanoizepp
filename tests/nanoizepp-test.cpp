@@ -206,6 +206,20 @@ TEST_CASE("Slash in tag", "[nanoizepp-test]")
     CHECK(miniaturized == "<div class=\"main_disp\"></div>");
 }
 
+TEST_CASE("Tag prefixed with space")
+{
+    std::string html = R"(<    div></div>)";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<div></div>");
+}
+
+TEST_CASE("Tag end prefixed with space")
+{
+    std::string html = R"(<div></ div>)";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<div></div>");
+}
+
 TEST_CASE("Tags in multiline paragraph", "[nanoizepp-test]")
 {
     std::string html = R"(<p>Hello<div class="foo"     >

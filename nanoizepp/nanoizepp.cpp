@@ -253,6 +253,12 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
             }
            
             // find the actual tag name
+            auto tag_begin = remaining_html.find_first_not_of(" \t\n\r");
+            if(tag_begin == std::string_view::npos) {
+                current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", "<"));
+                break;
+            }
+            remaining_html = remaining_html.substr(tag_begin);
             auto tag_end = remaining_html.find_first_of(" \t\n\r>[");
             if(tag_end == std::string_view::npos) {
                 current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", "<"+std::string(remaining_html)));
@@ -261,7 +267,10 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
             std::string tag_name = std::string(remaining_html.substr(0, tag_end));
             remaining_html = remaining_html.substr(tag_end);
             bool is_self_closed = self_closed_tags.contains(tag_name);
+            // Now, it's possible we met the </ div> tag, but we only parsed the </ part. But it's fine
+            // because of auto closing.
 
+            // Check if we got CDATA and handle it
             if(tag_name == "!" && remaining_html.starts_with("[CDATA")) {
                 // CDATA
                 auto cdata_end = remaining_html.find("]]>");
@@ -292,6 +301,7 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
                 continue;
             }
 
+            assert(tag_name.empty() == false);
             // Is it a closing tag?
             if(tag_name[0] == '/') {
                 // is the tag valid?
@@ -354,8 +364,7 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
             if(tag_name.back() == '/') {
                 tag_name.pop_back();
             }
-            HTMLNode new_node(tag_name, attributes);
-            current_node->children.push_back(new_node);
+            current_node->children.push_back(HTMLNode(tag_name, attributes));
             node_stack.push_back(&current_node->children.back());
         }
         else {
