@@ -2,13 +2,14 @@
 
 Quick and dirty dependency-free C++ 20 library to minimize HTML. It removes comments, unnecessary spaces and newlines. As well as fixing some common mistakes base on the HTML5 standard.
 
+The author created this library to minimize the HTML transmitted from [his blog](https://clehaxze.tw/blog). Contributions are welcome.
+
 ## Features
 
 - Dependency-free
 - Written in safe C++
 - Remove comments
 - Remove unnecessary spaces and newlines
-
 
 ### Limitations
 
