@@ -11,14 +11,16 @@ The author created this library to minimize the HTML transmitted from [his blog]
 - Remove comments
 - Remove unnecessary spaces and newlines
 - Unlike some minizeers, Nanoize++ conserves HTML tag sementics
+- Fix common HTML errors that affects the AST
 
 ### Limitations
 
-- Does not support CDATA
-- Does not support complicated DOCTYPE
-- HTML only. No XML support
+- Supports leaving CDATA as is. But no one uses it so no guarantee
+- HTML5 only. No previous HTML versions or XHTML support
 
 ## Usage
+
+There's only one API - `nanoizepp::minimize`. It takes your HTML string and returns a minimized version of it.
 
 ```cpp
 #include <nanoizepp/nanoizepp.hpp>

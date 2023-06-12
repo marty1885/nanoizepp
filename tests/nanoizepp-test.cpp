@@ -242,6 +242,59 @@ TEST_CASE("Complex nesting or tags and text")
     CHECK(miniaturized == html);
 }
 
+TEST_CASE("Auto closing unclosed tags")
+{
+    std::string html = R"(<p><div></p>)";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<p><div></div></p>");
+
+    html = R"(<p><div></p></div>)";
+    miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<p><div></div></p>");
+}
+
+TEST_CASE("Remove CR")
+{
+    std::string html = "<p>Hello\r\nWorld</p>";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<p>Hello World</p>");
+}
+
+TEST_CASE("Empty attributes")
+{
+    std::string html = R"(<div attr1></div>)";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<div></div>");
+
+    html = R"(<div attr1 attr2></div>)";
+    miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<div></div>");
+
+    html = R"(<div "attr1"></div>)";
+    miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<div></div>");
+}
+
+TEST_CASE("HTML5 Only")
+{
+    CHECK_NOTHROW(nanoizepp::nanoize("<!DOCTYPE html><html><body><p>Hello World</p></body></html>"));
+    CHECK_THROWS(nanoizepp::nanoize(R"(<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">)"));
+}
+
+TEST_CASE("Free Text")
+{
+    std::string html = R"(Hello        World!)";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "Hello World!");
+}
+
+TEST_CASE("Empty")
+{
+    std::string html = "";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "");
+}
+
 TEST_CASE("avoid special tags", "[nanoizepp-test]")
 {
     // <pre>, <code>, <textarea>, <plaintext>, <script>, <style>

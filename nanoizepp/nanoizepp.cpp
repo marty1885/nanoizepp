@@ -137,10 +137,20 @@ static std::pair<std::string_view, std::map<std::string, std::string>> parse_att
             break;
         auto attribute_name = remaining.substr(0, attribute_name_end);
         remaining = remaining.substr(attribute_name_end);
-        // skip whitespaces and =
-        whitespace = remaining.find_first_not_of(" \t\n\r=");
+        // skip whitespaces
+        whitespace = remaining.find_first_not_of(" \t\n\r");
         if(whitespace == std::string_view::npos)
             break;
+        // We expect an = here
+        if(remaining[whitespace] != '=') {
+            remaining = remaining.substr(whitespace);
+            if(attributes.contains(std::string(attribute_name)) == false)
+                attributes[std::string(attribute_name)] = "";
+            continue;
+        }
+        remaining = remaining.substr(whitespace + 1);
+        // skip whitespaces
+        whitespace = remaining.find_first_not_of(" \t\n\r");
         remaining = remaining.substr(whitespace);
         // check if we are at the end of the tag
         if(remaining[0] == '>') {
@@ -297,6 +307,9 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
             auto [remaining, attributes] = parse_attributes(remaining_html);
             remaining_html = remaining;
             if(is_self_closed) {
+                if(tag_name == "!DOCTYPE" && !(attributes.size() == 1 && attributes.contains("html") && attributes["html"] == ""))
+                    throw std::runtime_error("Only HTML5 is supported by nanoizepp");
+
                 current_node->children.push_back(HTMLNode(tag_name, attributes));
                 continue;
             }
