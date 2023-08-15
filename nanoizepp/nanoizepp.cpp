@@ -37,7 +37,7 @@ static const std::set<std::string> self_closed_tags = {
 };
 
 static const std::set<std::string> tags_never_minimize_content = {
-    "script", "style", "pre", "code", "textarea", "plaintext"
+    "script", "style", "pre", "code", "textarea", "plaintext", "samp", "kbd", "var"
 };
 
 static const std::set<std::string> tags_cdata_allowed = {
