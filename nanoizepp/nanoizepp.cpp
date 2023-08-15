@@ -244,7 +244,7 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
                     continue;
                 }
             }
-            // Is possuble to be a incorrectly-opened-comment?
+            // Is possible to be a incorrectly-opened-comment?
             if(remaining_html.size() >= 1 && remaining_html.starts_with("!")) {
                 // Is it really a incorrectly-opened-comment? Try by checking if the following character is
                 // not a [ (CDATA) or is DOCTYPE
@@ -368,7 +368,7 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
             }
             // is the tag valid?
             if(std::isdigit(tag_name[0]) == true) {
-                current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", tag_name));
+                current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", "&lt;"+tag_name+"&gt;"));
                 continue;
             }
             if(tag_name[0] == '?') {

@@ -108,7 +108,7 @@ TEST_CASE("invalid-first-character-of-tag-name")
 {
     std::string html = "<42></42>";
     std::string miniaturized = nanoizepp::nanoize(html);
-    CHECK(miniaturized == "42");
+    CHECK(miniaturized == "&lt;42&gt;");
 }
 
 TEST_CASE("missing-attribute-value")
@@ -118,11 +118,22 @@ TEST_CASE("missing-attribute-value")
     CHECK(miniaturized == "<p>123</p>");
 }
 
+TEST_CASE("missing-whitespace-between-attributes")
+{
+    std::string html = R"(<p class="red"id="blue">123</p>)";
+    std::string miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<p class=\"red\" id=\"blue\">123</p>");
+}
+
 TEST_CASE("missing-end-tag-name")
 {
     std::string html = "<p></></p>";
     std::string miniaturized = nanoizepp::nanoize(html);
     CHECK(miniaturized == "<p></p>");
+
+    html = "<p>123</>";
+    miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<p>123</p>");
 }
 
 TEST_CASE("nested-comment")
