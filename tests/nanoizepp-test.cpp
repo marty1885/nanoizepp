@@ -332,4 +332,12 @@ TEST_CASE("avoid special tags", "[nanoizepp-test]")
     html = R"(<style> .main_disp { color: red; } </style>)";
     miniaturized = nanoizepp::nanoize(html);
     CHECK(miniaturized == "<style> .main_disp { color: red; } </style>");
+
+}
+
+TEST_CASE("media_element")
+{
+    std::string html = R"(<audio controls></audio>)";
+    auto miniaturized = nanoizepp::nanoize(html);
+    CHECK(miniaturized == "<audio controls></audio>");
 }

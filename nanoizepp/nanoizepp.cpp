@@ -53,10 +53,8 @@ static std::string serialize_html_node(const HTMLNode& root, size_t indent, bool
         if(is_text == false) {
             current += "<" + root.tag;
             for(const auto& [key, value] : root.attributes) {
-                if(value == "") {
-                    if(root.tag == "!DOCTYPE")
-                        current += " " + key;
-                }
+                if(value == "")
+                    current += " " + key;
                 else
                     current += " " + key + "=\"" + value + "\"";
             }
