@@ -85,6 +85,7 @@ static std::string minimize_html_text(const std::string_view sv)
 {
     std::string_view text = sv;
     std::string minimized_text;
+    minimized_text.reserve(text.size());
     bool last_was_space = false;
     while(text.empty() == false) {
         auto space = text.find_first_of(" \t\n\r");
@@ -130,7 +131,7 @@ static std::pair<std::string_view, std::map<std::string, std::string>> parse_att
         // check if we are at the end of the tag
         if(remaining[0] == '>')
             break;
-        
+
         // find the attribute name
         auto attribute_name_end = remaining.find_first_of(" \t\n\r=>");
         if(attribute_name_end == std::string_view::npos)
@@ -261,7 +262,7 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
                 }
                 // Else it's something else, let's just skip it
             }
-           
+
             // find the actual tag name
             auto tag_begin = remaining_html.find_first_not_of(" \t\n\r");
             if(tag_begin == std::string_view::npos) {
@@ -302,7 +303,7 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
                 current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", "<![CDATA["+std::string(cdata)+"]]>"));
                 continue;
             }
-            
+
             // parse attributes
             auto [remaining, attributes] = parse_attributes(remaining_html);
             remaining_html = remaining;
@@ -399,7 +400,7 @@ std::string nanoizepp::nanoize(const std::string_view html, size_t indent, bool 
                 current_node->children.push_back(HTMLNode("NANOIZEPP-PLAINTEXT", minimized_text));
             }
         }
-        
+
     }
     return serialize_html_node(document_root, indent, newline);
 }
